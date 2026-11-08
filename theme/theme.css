@@ -1,0 +1,383 @@
+/* theme-v4 "Pinboard": a light board, photos and clippings taped on, short text on sticky notes, long text on pinned paper.
+   Every colour, size, tilt range and gap is a token in this first block; leave the rest alone. */
+@font-face {
+  font-family: 'Paper Mono';
+  src: url('/fonts/PaperMono.woff2') format('woff2');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+:root {
+  /* the board */
+  --board: #E9E4DA;                  /* page background: a shade darker than --paper */
+  --vignette: rgb(26 25 24 / .10);   /* soft shade at the screen edges */
+  --vignette-size: clamp(80px, 12vw, 200px);
+
+  /* paper and ink */
+  --paper: #F0EEE9;                  /* Pantone Cloud Dancer */
+  --paper-raised: #FAF9F6;
+  --ink: #1A1918;
+  --accent: #C8261C;                 /* the Contact button only */
+  --thread: #C8261C;                 /* the red thread behind growth milestones */
+
+  /* sticky notes: ink on each is at least 4.5:1 */
+  --note-yellow: #EBCB5A;
+  --note-coral: #EE8E78;
+  --note-sage: #A9C2AC;
+  --note-sky: #9DB9D6;
+  --note-pink: #F2B8C2;
+
+  /* pushpins */
+  --pin-red: #D8392B;
+  --pin-blue: #3A66B5;
+  --pin-yellow: #E8B923;
+  --pin-green: #3E9461;
+
+  /* footer paper */
+  --paper-blue: #2F4B7C;
+
+  /* paper items */
+  --polaroid-frame: #FCFBF8;         /* a freshly printed instant photo */
+  --newsprint: #E4DCC8;
+  --newsprint-ink: #2B2720;
+  --halftone-opacity: .32;
+  --tape-cream: rgb(244 238 208 / .66);
+  --tape-yellow: rgb(247 223 110 / .58);
+  --tape-blue: rgb(178 208 232 / .52);
+  --tape-pink: rgb(240 190 202 / .52);
+  --item-shadow: drop-shadow(1px 3px 3px rgb(26 25 24 / .18)) drop-shadow(0 1px 1px rgb(26 25 24 / .12));
+  --item-shadow-small: drop-shadow(0 1px 2px rgb(26 25 24 / .16));
+  --note-lift: rgb(26 25 24 / .09);  /* the darker strip along a note's bottom edge */
+
+  /* tilt: each item gets a hash-based direction and a place in its range; the range is set here */
+  --tilt-polaroid-min: .9deg;  --tilt-polaroid-max: 4deg;
+  --tilt-clipping-min: .9deg;  --tilt-clipping-max: 3deg;
+  --tilt-cutout-min: .9deg;    --tilt-cutout-max: 2.5deg;
+  --tilt-sticky-min: .9deg;    --tilt-sticky-max: 3deg;
+  --tilt-paper-min: .25deg;    --tilt-paper-max: .6deg;   /* a tall sheet swings sideways by its height times the angle, so keep this small */
+  --tilt-phone: .5;                  /* tilt is multiplied by this below the phone breakpoint */
+
+  --texture-opacity: .3;             /* .25 to .4 */
+  /* Swap for url('/textures/paper.jpg') once that file is in public/textures/ */
+  --texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.5 .42' numOctaves='5' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .27 0 0 0 0 .2 0 0 0 1.5 -.62'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23p)'/%3E%3C/svg%3E");
+
+  /* type */
+  --font-heading: var(--font-display), Georgia, serif;   /* Fraunces, set by the layout */
+  --font-body: var(--font-display), Georgia, serif;
+  --font-hand-stack: var(--font-hand), 'Segoe Print', 'Bradley Hand', cursive;   /* Caveat, set by the layout */
+  --font-mono: 'Paper Mono', ui-monospace, monospace;
+  --hand: 1.4rem;                                        /* handwriting is never smaller than this */
+  --hand-h: clamp(1.9rem, 3.4vw, 2.6rem);
+  --h2: clamp(1.4rem, 2.2vw, 1.9rem);
+  --text: 1.125rem;
+  --small: .875rem;
+
+  /* layout. CSS cannot read a variable inside @media, so the two breakpoints below are written out
+     as 640px (phone below) and 1100px (desktop above) in the rules at the end. Change them there too. */
+  --bp-phone: 640px;
+  --bp-desktop: 1100px;
+  --m: clamp(16px, 4vw, 32px);
+  --container: min(1200px, 100% - 2 * var(--m));
+  --column: 680px;
+  --sheet: 700px;
+  --break: min(960px, 100cqw);       /* how wide a picture may break out of a post sheet */
+  --gap-s: clamp(10px, 1.2vw, 14px);
+  --gap-m: clamp(18px, 2.4vw, 32px);
+  --gap-l: clamp(56px, 8vw, 112px);
+  --overlap: 12px;                   /* most that neighbours may overlap, desktop only, never over text */
+}
+
+/* ---- base ---- */
+*, *::before, *::after { box-sizing: border-box; }
+html { color-scheme: light; }
+body { margin: 0; min-height: 100svh; display: flex; flex-direction: column; background: var(--board); color: var(--ink); font: 400 var(--text)/1.6 var(--font-body); overflow-x: clip; -webkit-font-smoothing: antialiased; }
+body::before, body::after { content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+body::before { background: var(--texture); mix-blend-mode: multiply; opacity: var(--texture-opacity); }
+body::after { box-shadow: inset 0 0 var(--vignette-size) var(--vignette); }
+.site-header, main, .site-footer { position: relative; z-index: 1; }
+
+::selection { background: var(--note-yellow); color: var(--ink); }
+a { color: inherit; text-underline-offset: .2em; }
+a:hover { text-decoration-thickness: 2px; }
+:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+h1, h2, h3 { font-family: var(--font-heading); font-weight: 600; line-height: 1.15; letter-spacing: -.01em; margin: 0; text-wrap: balance; }
+h2 { font-size: var(--h2); }
+h3 { font-size: 1.3rem; }
+p { margin: 0; }
+.meta { font-family: var(--font-mono); font-size: var(--small); }
+time { font-variant-numeric: tabular-nums; }
+img, video { display: block; max-width: 100%; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* handwriting: short text only (under 20 words); paragraphs stay in the serif */
+.hand { font-family: var(--font-hand-stack); font-weight: 500; font-size: var(--hand); line-height: 1.2; letter-spacing: 0; color: var(--ink); }
+.hand-b { font-weight: 700; }
+h1.hand, h2.hand, h3.hand { font-weight: 700; line-height: 1.1; letter-spacing: 0; }
+.hand-h { font-size: var(--hand-h); }
+.serif-h { font-size: var(--h2); }
+.hand time, .hand a { font: inherit; }
+.quote-hand { font-size: 1.6rem; }
+
+/* ---- header and footer ---- */
+.site-header { width: var(--container); margin: 0 auto; padding: 24px 0; display: flex; flex-wrap: wrap; gap: 12px 24px; justify-content: space-between; align-items: center; }
+.brand { font: 600 1.5rem/1 var(--font-heading); text-decoration: none; }
+.site-header nav { display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: center; }
+.site-header nav a:not(.button) { text-decoration: none; }
+.site-header nav a:not(.button):hover { text-decoration: underline; }
+.button { background: var(--accent); color: var(--paper-raised); padding: .5em 1.1em; text-decoration: none; font-family: var(--font-mono); font-size: var(--small); }
+.button:hover { text-decoration: underline; }
+
+.site-footer { margin-top: var(--gap-l); padding: 56px var(--m) 32px; background: var(--paper-blue); color: var(--paper-raised); text-align: center; isolation: isolate;
+  clip-path: polygon(0% 10px, 3% 4px, 7% 9px, 12% 3px, 18% 8px, 23% 2px, 29% 7px, 35% 3px, 41% 9px, 47% 4px, 53% 8px, 59% 2px, 66% 7px, 72% 3px, 78% 9px, 84% 4px, 90% 8px, 95% 3px, 100% 6px, 100% 100%, 0% 100%); }
+.site-footer::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: var(--texture); mix-blend-mode: multiply; opacity: var(--texture-opacity); }
+.links a, .foot-links a { display: inline-flex; align-items: center; gap: .5em; }
+.icon { width: 1.25em; height: 1.25em; flex: none; }
+.foot-links { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 12px 28px; }
+.foot-links a { text-decoration: none; }
+.foot-links a:hover { text-decoration: underline; }
+
+/* ---- the grid: 12 columns on desktop, 6 on tablet, 1 on phone ---- */
+main { flex: 1; width: var(--container); margin: 0 auto; padding-top: 24px; container-type: inline-size; }
+main > * + * { margin-top: var(--gap-m); }
+main > .board-section { margin-top: var(--gap-l); }
+.grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--gap-m); align-items: start; }
+.grid > * { min-width: 0; }
+.s12 { grid-column: span 12; } .s8 { grid-column: span 8; } .s6 { grid-column: span 6; } .s4 { grid-column: span 4; } .s3 { grid-column: span 3; }
+.board-section > * + * { margin-top: var(--gap-m); }
+.empty { max-width: var(--column); }
+
+/* ---- fastened items: every item has a tilt, a shadow and tape or a pin ---- */
+.item { --tilt-forced: initial; display: block; position: relative; width: 100%; margin: 12px 0; isolation: isolate; filter: var(--item-shadow);
+  --tilt-auto: calc(var(--ts, 1) * (var(--tmin) + var(--tf, .5) * (var(--tmax) - var(--tmin))));
+  --tilt: var(--tilt-forced, var(--tilt-auto)); rotate: var(--tilt); }
+.item-polaroid { --tmin: var(--tilt-polaroid-min); --tmax: var(--tilt-polaroid-max); }
+.item-clipping { --tmin: var(--tilt-clipping-min); --tmax: var(--tilt-clipping-max); }
+.item-cutout { --tmin: var(--tilt-cutout-min); --tmax: var(--tilt-cutout-max); }
+.item-sticky { --tmin: var(--tilt-sticky-min); --tmax: var(--tilt-sticky-max); }
+.item-paper { --tmin: var(--tilt-paper-min); --tmax: var(--tilt-paper-max); }
+.item.is-long { --tilt-forced: 0deg; }   /* a sheet with a long text sits straight, so its pictures stay on the board */
+.grid > .item { margin: 0; }
+.item .paper { position: relative; display: block; margin: 0; }
+.item img, .item video, .item iframe { display: block; width: 100%; }
+.item img, .item video { height: auto; }
+.item-small { width: 120px; }
+
+.polaroid { width: min(100%, 420px); justify-self: center; margin-inline: auto; }
+.polaroid .paper { background: var(--polaroid-frame); padding: 14px 14px 58px; }
+.polaroid img { aspect-ratio: 1; object-fit: cover; outline: 1px solid rgb(26 25 24 / .08); outline-offset: -1px; }
+.polaroid.ratio-landscape img { aspect-ratio: 4 / 3; }
+.polaroid figcaption { position: absolute; inset: auto 14px 0; height: 58px; margin: 0; display: grid; place-items: center; text-align: center; }
+.polaroid-reel { width: min(100%, 340px); }
+.polaroid .reel { height: 720px; background: var(--paper-raised); }
+.polaroid.item-small { width: 120px; }
+.polaroid.item-small .paper { padding: 8px 8px 34px; }
+.polaroid.item-small figcaption { inset: auto 8px 0; height: 34px; font-size: var(--hand); }
+
+.clipping .paper { background: var(--newsprint); color: var(--newsprint-ink); padding: 14px 14px 12px; clip-path: var(--edge); }
+.clipping .paper::after, .cutout .paper::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: var(--texture); mix-blend-mode: multiply; opacity: var(--texture-opacity); }
+.photo-wrap { position: relative; }
+.clipping img { filter: grayscale(1) sepia(.28) contrast(1.06); }
+.photo-wrap::after { content: ''; position: absolute; inset: 0; pointer-events: none; mix-blend-mode: multiply; opacity: var(--halftone-opacity);
+  background: radial-gradient(circle at center, rgb(30 24 14) 0 .8px, transparent 1.3px) 0 0 / 4px 4px; }
+.clipping figcaption { margin: 10px 0 0; color: var(--newsprint-ink); font: italic 400 .9375rem/1.35 Georgia, 'Times New Roman', serif; }
+.clipping figcaption span { display: block; }
+.clipping .credit { margin-top: 4px; font: 400 .8125rem/1.3 var(--font-mono); font-style: normal; }
+.clipping-mono figcaption { font: 400 .8125rem/1.4 var(--font-mono); font-style: normal; }
+
+.cutout .paper { background: var(--paper-raised); padding: 10px; clip-path: var(--edge); }
+.cutout figcaption { margin: 8px 2px 2px; color: var(--ink); font-size: .9375rem; line-height: 1.4; }
+.video-frame .video { aspect-ratio: 16 / 9; border: 0; }
+
+.clip-fallback { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .clip video { display: none; }
+  .clip-fallback { display: block; }
+}
+
+.gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 28px 22px; align-items: start; margin: 12px 0; }
+.gallery .item { margin: 0; width: 100%; }
+.gallery > :nth-child(even) { margin-top: 18px; }
+
+.compare { position: relative; overflow: hidden; line-height: 0; }
+.compare img { width: 100%; }
+.compare-before { position: absolute; inset: 0; height: 100%; object-fit: cover; clip-path: inset(0 calc(100% - var(--pos, 50%)) 0 0); }
+.compare-line { position: absolute; top: 0; bottom: 0; left: var(--pos, 50%); width: 3px; margin-left: -1.5px; background: var(--paper-raised); pointer-events: none; }
+.compare-line::after { content: ''; position: absolute; top: 50%; left: 50%; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%; background: var(--paper-raised); box-shadow: 0 1px 3px rgb(26 25 24 / .35); }
+.compare-tag { position: absolute; bottom: 8px; padding: .1em .55em; background: rgb(250 249 246 / .9); color: var(--ink); font: 400 .8125rem/1.5 var(--font-mono); pointer-events: none; }
+.compare-tag-before { left: 8px; }
+.compare-tag-after { right: 8px; }
+.compare input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: ew-resize; }
+.compare:focus-within { outline: 3px solid var(--ink); outline-offset: 3px; }
+
+/* tape and pins: decorative, never take a click */
+.tape { position: absolute; z-index: 2; height: 26px; width: var(--tape-w); background: var(--tape-bg); pointer-events: none; }
+.tape-sz-s { --tape-w: 64px; } .tape-sz-m { --tape-w: 96px; } .tape-sz-l { --tape-w: 132px; }
+.tape-cream { --tape-bg: var(--tape-cream); } .tape-yellow { --tape-bg: var(--tape-yellow); }
+.tape-blue { --tape-bg: var(--tape-blue); } .tape-pink { --tape-bg: var(--tape-pink); }
+.tape-washi { clip-path: polygon(0 0, 100% 0, calc(100% - 3px) 14%, 100% 28%, calc(100% - 3px) 42%, 100% 56%, calc(100% - 3px) 70%, 100% 84%, calc(100% - 3px) 100%, 0 100%, 3px 86%, 0 72%, 3px 58%, 0 44%, 3px 30%, 0 16%); }
+/* layouts. 'top': one strip across the top edge, about 40% of it over the item. 'corners' and 'opposite': two shorter strips that
+   straddle a corner. --ox is how far the strip's centre sits from the side edge: just outside on wide screens, pushed inward
+   as far as needed on narrow ones, so no strip leaves the screen gutter. */
+.tape-top { top: -16px; left: 50%; margin-left: calc(var(--tape-w) / -2); rotate: var(--tape-rot); }
+.tape-corners, .tape-opposite { --cw: min(calc(var(--tape-w) * .72), 72px); --oy: -2px;
+  --gut: max(var(--m), calc((100vw - 1200px) / 2));
+  --ox: max(-2px, calc(var(--cw) * .425 + 9px - var(--gut) + 2px));
+  width: var(--cw); }
+.tape-tl { left: calc(var(--ox) - var(--cw) / 2); top: calc(var(--oy) - 13px); rotate: calc(var(--tape-rot) * -1); }
+.tape-tr { right: calc(var(--ox) - var(--cw) / 2); top: calc(var(--oy) - 13px); rotate: var(--tape-rot); }
+.tape-br { right: calc(var(--ox) - var(--cw) / 2); bottom: calc(var(--oy) - 13px); rotate: calc(var(--tape-rot) * -1); }
+.pin { position: absolute; z-index: 2; top: -8px; left: 50%; width: 16px; height: 16px; margin-left: -8px; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle at 34% 30%, rgb(255 255 255 / .75) 0 12%, transparent 30%), radial-gradient(circle at 50% 50%, var(--pin) 0 62%, rgb(26 25 24 / .35) 100%);
+  box-shadow: 1px 3px 3px rgb(26 25 24 / .35); }
+.pin-red { --pin: var(--pin-red); } .pin-blue { --pin: var(--pin-blue); } .pin-yellow { --pin: var(--pin-yellow); } .pin-green { --pin: var(--pin-green); }
+
+/* ---- sticky notes and pinned sheets ---- */
+.sticky { background: var(--note); color: var(--ink); padding: var(--pad-y) var(--pad-x); overflow-wrap: break-word; }   /* not 'anywhere': that lets flexbox squeeze a note to one letter */
+.sticky::after { content: ''; position: absolute; inset: auto 0 0; height: 14px; pointer-events: none; background: linear-gradient(to bottom, transparent, var(--note-lift)); }
+.sticky-body { position: relative; z-index: 1; }
+.sticky-body > * + * { margin-top: .75rem; }
+.note-yellow { --note: var(--note-yellow); } .note-coral { --note: var(--note-coral); } .note-sage { --note: var(--note-sage); }
+.note-sky { --note: var(--note-sky); } .note-pink { --note: var(--note-pink); }
+.sticky-small { --pad-y: .85rem; --pad-x: 1rem; width: fit-content; max-width: 100%; }
+.sticky-medium { --pad-y: 1.35rem; --pad-x: 1.4rem; }
+.sticky-large { --pad-y: 1.9rem; --pad-x: 2rem; }
+.sticky a { text-decoration-thickness: 1px; }
+a.sticky, a.sticky:hover { text-decoration: none; }
+.sticky.is-active { --note: var(--ink); color: var(--paper-raised); }
+.sticky.is-active .hand { color: var(--paper-raised); }
+.sticky .item { margin: 4px 0; }
+.sticky-body > * + .item { margin-top: 2rem; }   /* room for the tape above a picture inside a note */
+.sticky .polaroid-reel { width: min(100%, 320px); }
+.card-title { font-size: 1.4rem; }
+.card-title a { text-decoration: none; }
+.post-card { position: relative; }
+.post-card .card-title a::after { content: ''; position: absolute; inset: 0; z-index: 1; }   /* the whole card opens the post */
+.post-card .tag-row a, .post-card .tag-row .item { position: relative; z-index: 2; }       /* tags stay their own links */
+.post-card:hover .card-title a { text-decoration: underline; }
+.post-card .sticky-body { position: static; }   /* so the link's ::after reaches the card's edges */
+.post-card:has(.card-title a:focus-visible) { outline: 3px solid var(--ink); outline-offset: 4px; }
+.post-card .card-title a:focus-visible { outline: none; }
+.card-title a:hover { text-decoration: underline; }
+
+.sheet-paper { background: var(--paper-raised); padding: clamp(40px, 5vw, 60px) clamp(24px, 4vw, 48px) clamp(28px, 4vw, 48px); }
+.sheet-paper::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: var(--texture); mix-blend-mode: multiply; opacity: var(--texture-opacity); }
+.sheet-paper > :not(.tape):not(.pin) { position: relative; z-index: 1; }   /* the tape and pin keep their own absolute position */
+.sheet-paper > .paper-body, .sheet-paper p { max-width: var(--column); }
+
+.tag-row { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--gap-s); }
+.tag-row .item { margin: 4px 0; }
+.filter-row { margin-top: var(--gap-m); }
+.link-note { display: inline-flex; align-items: center; gap: .45em; }
+
+/* ---- pages ---- */
+.page-title-note, .section-title { width: fit-content; max-width: 100%; }
+.section-title { --pad-y: 1.1rem; margin-bottom: 0; }
+.home-left { display: grid; gap: var(--gap-m); align-content: start; }
+.story-body > * + * { margin-top: 1rem; }
+.story-body p { max-width: var(--column); }
+.story-note.is-wide .story-body { max-width: none; }
+@media (min-width: 1101px) {
+  .story-note.is-wide .story-body { columns: 2; column-gap: 3rem; }   /* no picture yet: use the full width, reading order unchanged */
+  .story-note.is-wide .story-body p { max-width: none; break-inside: avoid; }
+}
+
+.card .paper { display: grid; gap: 8px; padding: 10px 10px 14px; }
+.card img { aspect-ratio: 16 / 10; object-fit: cover; }
+.card .card-title { padding-inline: 4px; }
+.card .meta { padding-inline: 4px; }
+a.card { text-decoration: none; color: var(--ink); }
+
+.post-head { display: grid; justify-items: center; gap: var(--gap-s); }
+.post-title-note { width: min(100%, var(--sheet)); }
+.post-head .tag-row { justify-content: center; }
+.post-sheet { width: min(var(--sheet), 100%); margin-inline: auto; }
+.paper-body { display: flow-root; }
+.paper-body > * + * { margin-top: 1.2rem; }
+.paper-body > .item, .paper-body > .gallery { margin-block: 3rem; }
+.paper-body > .item-cutout, .paper-body > .item-clipping, .paper-body > .gallery { clear: both; }   /* a block picture cannot sit beside a floated reel: start below it */   /* room for the tape above each picture */
+.paper-body > .polaroid-reel { margin-inline: auto; }
+.paper-body > .inline-note { margin-inline: 0; }
+.post-nav { width: min(var(--sheet), 100%); margin-inline: auto; display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: var(--gap-s); }
+
+.showreel > .item:not(.section-title) { width: min(100%, 960px); margin-inline: auto; }
+.showreel-note { width: min(100%, 560px); margin-inline: auto; }
+.project-card .video-frame, .project-card .polaroid-reel { margin-inline: auto; }
+.project-card .item-small { margin-inline: 0; }
+.result { font-size: 1rem; }
+.quote { display: grid; grid-template-columns: 1fr; gap: 12px 20px; align-items: start; }
+.quote.has-photo { grid-template-columns: auto 1fr; }
+.quote blockquote { margin: 0; }
+.quote .by { margin-top: 8px; }
+.growth-intro { width: min(var(--sheet), 100%); }
+.milestones { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: var(--gap-m); align-items: start; }
+.milestones > li { position: relative; }
+.milestones > li::before { content: ''; position: absolute; z-index: -1; top: 28px; left: calc(var(--gap-m) / -2); right: calc(var(--gap-m) / -2); height: 2px; background: var(--thread); }
+.milestones .sticky { width: 100%; }
+.milestones .polaroid-reel { width: min(100%, 280px); }
+
+.about-grid { align-items: start; }
+.about-solo { grid-column: 3 / span 8; }
+.about-main { display: grid; gap: var(--gap-m); }
+.about-sheet p { font-size: 1.25rem; }
+.link-row { gap: var(--gap-s); }
+
+/* ---- <Section>: a sticky note, with a taped picture on one half (the picture comes first on phones and tablets) ---- */
+.section-row { margin: var(--gap-m) 0; clear: both; }
+.main-sections > .section-row, .home-sections > .section-row { margin: calc(var(--gap-m) * 2) 0 0; }
+.section-row.has-image { align-items: start; }   /* picture and note both start at the top; a short note does not stretch */
+.section-text > * + * { margin-top: .75rem; }
+.section-text .item { margin: 2rem 0 .5rem; }
+/* a <Section> inside any sticky note: stacked, picture first (full width of the note, at most 280px), then a smaller note. Never a grid inside a note. */
+.sticky .section-row { margin: 1.5rem 0 0; }
+.sticky .section-row.grid { grid-template-columns: minmax(0, 1fr); gap: 1rem; }
+.sticky .section-row.grid > * { grid-column: 1; order: 0; }
+.sticky .section-pic { width: min(100%, 280px); }
+.sticky .section-note { --pad-y: .85rem; --pad-x: 1rem; }
+.sticky .section-note h2 { font-size: var(--hand); }
+/* a nested note never matches the note it sits on */
+.note-yellow .section-note.note-yellow, .note-coral .section-note.note-coral, .note-sage .section-note.note-sage, .note-sky .section-note.note-sky, .note-pink .section-note.note-pink { --note: var(--note-sky); }
+.note-sky .section-note.note-sky { --note: var(--note-yellow); }
+
+/* ---- desktop (above 1100px): neighbours may overlap by --overlap, reels float beside the text ---- */
+@media (min-width: 1101px) {
+  .hero-note + .item { margin-top: calc(var(--overlap) * -1); }   /* the picture rises under the tagline note */
+  .hero-note { z-index: 3; }
+  .section-row.side-right > .section-pic { order: 2; }
+  .sticky .section-row.side-right > .section-pic { order: 0; }
+  .paper-body > .polaroid-reel { float: right; width: 340px; margin: 4px calc(var(--m) * -1 - 90px) 1rem 28px; }
+}
+/* a note may lift 2px on desktop, nothing more */
+@media (hover: hover) and (min-width: 1101px) and (prefers-reduced-motion: no-preference) {
+  .item { transition: translate .2s ease-out; }
+  a.item:hover { translate: 0 -2px; }
+}
+
+/* ---- tablet and up (above 640px): pictures break out of a post sheet, up to 960px ---- */
+@media (min-width: 641px) {
+  .paper-body > .section-row.has-image { --row: min(960px, calc(100cqw - 56px)); width: var(--row); margin-inline: calc((100% - var(--row)) / 2); }   /* 56px keeps the tape and tilt on screen */   /* picture rows break out of the post column like pictures do */
+  .paper-body > .item-cutout, .paper-body > .item-clipping, .paper-body > .gallery { width: var(--break); margin-inline: calc((100% - var(--break)) / 2); }
+}
+
+/* ---- tablet (640 to 1100px): 6 columns, no overlap ---- */
+@media (max-width: 1100px) {
+  .grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .s12, .s8, .s6 { grid-column: span 6; }
+  .s4, .s3 { grid-column: span 3; }
+  .about-solo { grid-column: span 6; }
+  .section-pic > .item { width: min(100%, 560px); margin-inline: auto; }
+  .home-left > .item { width: min(100%, 560px); margin-inline: auto; }   /* a full-width tilted picture would swing past the screen edge */
+}
+
+/* ---- phone: 1 column, tilt halved, lighter shadows; colour and texture stay ---- */
+@media (max-width: 640px) {
+  .grid { grid-template-columns: 1fr; }
+  .s12, .s8, .s6, .s4, .s3, .about-solo { grid-column: 1 / -1; }
+  .item { rotate: calc(var(--tilt) * var(--tilt-phone)); filter: var(--item-shadow-small); }
+  .quote.has-photo { grid-template-columns: 1fr; }
+  .milestones { grid-template-columns: 1fr; }
+  .milestones > li::before { display: none; }
+  .post-nav { flex-direction: column; align-items: stretch; }
+  .post-nav .sticky { width: 100%; }
+  .item-small, .polaroid.item-small { width: 96px; }
+  .site-footer { padding-top: 48px; }
+}

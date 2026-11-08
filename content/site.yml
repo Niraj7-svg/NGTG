@@ -1,0 +1,26 @@
+# Your settings. One per line, written  name: value
+name: "Niraj"
+tagline: "3D artist and video editor, building my first game in public."
+about: "I'm Niraj, a 3D artist and video editor building my first game in public. Each week I write up one step as a short devlog with a reel."
+
+# Contact links, shown in this order in the footer and on About. Add as many as you like, even two of the same kind.
+#   icon:  the logo. Built-in names: email, instagram, linkedin, youtube, github, artstation. An unknown name shows no logo.
+#   label: the words shown next to the logo. Leave it out and the icon name is used.
+#   url:   the link. For email you can write just the address. A url of REPLACE hides that link until you fill it in.
+links:
+  - icon: email
+    label: "dev.nirajk@gmail.com"
+    url: "dev.nirajk@gmail.com"
+
+  - icon: instagram
+    label: "Niraj"
+    url: "https://www.instagram.com/nirosan.art/"
+  - icon: instagram
+    label: "NGTG"
+    url: "REPLACE"
+  - icon: linkedin
+    label: "LinkedIn"
+    url: "REPLACE"
+  - icon: github
+    label: "GitHub"
+    url: "https://github.com/Niraj7-svg"
